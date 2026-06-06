@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+.controls { display: flex; gap: 5px; align-items: center; justify-content: center; width: 100%; height: 100%; }
+.timer, .cancel { min-height: 26px; border: 0; border-radius: 0; background: #fff; color: #111;
+                  font: 700 12px/1 Monaco, Menlo, monospace; text-align: center; }
+.timer  { min-width: 82px; padding: 7px 8px 0; box-sizing: border-box; }
+.cancel { width: 26px; padding: 0; cursor: pointer; }
+.cancel:hover { filter: brightness(0.94); }
+</style>
+</head>
+<body>
+<div class="controls">
+  <div class="timer" id="timer">…</div>
+  <button class="cancel" id="cancel" type="button" aria-label="Cancel recording">
+    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="2" height="2" fill="currentColor"/>
+      <rect x="7" y="3" width="2" height="2" fill="currentColor"/>
+      <rect x="5" y="5" width="2" height="2" fill="currentColor"/>
+      <rect x="3" y="7" width="2" height="2" fill="currentColor"/>
+      <rect x="7" y="7" width="2" height="2" fill="currentColor"/>
+    </svg>
+  </button>
+</div>
+<script>
+"use strict";
+let total = 0;
+let startedAt = 0;
+let timerInterval = null;
+const timerEl = document.getElementById("timer");
+
+document.getElementById("cancel").addEventListener("click", () => {
+  window.controlsAPI.sendCancel();
+});
+
+window.controlsAPI.onInit((data) => {
+  total = data.durationSec || 0;
+  startedAt = Date.now();
+  timerEl.textContent = "0/" + total + "s";
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+    timerEl.textContent = Math.min(total, elapsed) + "/" + total + "s";
+  }, 150);
+});
+</script>
+</body>
+</html>

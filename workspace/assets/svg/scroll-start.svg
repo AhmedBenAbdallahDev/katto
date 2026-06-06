@@ -1,0 +1,27 @@
+<svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13 13H3V14H2V15H1V22H2V23H3V24H4V25H13V24H14V22H15V21H16V17H15V15H14V14H13V13Z" fill="#D9D9D9" stroke="black"/>
+<path d="M8 22H7V23H6V25" stroke="black"/>
+<path d="M13 13H5V15H6V16H7V17H8V30H16V17H15V15H14V14H13V13Z" fill="#D9D9D9" stroke="black"/>
+<path d="M20.0869 23.5246L31.0743 22.9977L31.3138 27.992L17.8293 28.6386L17.7814 27.6398L14.2854 27.8074L14.2375 26.8086L13.2387 26.8565L13.1908 25.8576L12.1919 25.9055L12.0003 21.9101L15.9957 21.7185L16.0436 22.7174L20.039 22.5258L20.0869 23.5246Z" fill="black"/>
+<path d="M36 39V38H42V37H44V36H45V35H44V32H45V31H47V32H48V33H49V38H48V39H47V40H45V41H40V40H37V39H36Z" fill="black"/>
+<path d="M23 36V26H24V25H26V24H27V22H35V23H36V24H38V26H39V30H40V34H41V40H40V41H34V42H28V41H23V40H22V36H23Z" fill="black"/>
+<path d="M22 42V38H30V42H29V44H28V46H24V44H23V42H22Z" fill="black"/>
+<path d="M34 42V38H42V42H41V44H40V46H36V44H35V42H34Z" fill="black"/>
+<path d="M24 10H22V12H21V14H20V19H21V23H23V24H24V25H26V26H36V25H38V24H39V23H40V22H41V19H42V15H41V12H40V11H39V10H37V9H35V8H27V9H24V10Z" fill="black"/>
+<rect width="6" height="1" transform="translate(17 18)" fill="black"/>
+<rect width="6" height="1" transform="translate(38 19)" fill="black"/>
+<rect width="6" height="1" transform="translate(18 20)" fill="black"/>
+<rect width="6" height="1" transform="translate(39 21)" fill="black"/>
+<path d="M22 11V8H23V6H24V5H25V4H26V6H27V7H28V11H27V12H23V11H22Z" fill="black"/>
+<path d="M35 7H34V11H35V12H38V11H39V6H38V5H37V4H36V5H35V7Z" fill="black"/>
+<rect width="1" height="3" transform="translate(31 16)" fill="white"/>
+<rect width="1" height="3" transform="translate(35 16)" fill="white"/>
+<rect width="3" height="5" transform="translate(32 15)" fill="white"/>
+<rect width="3" height="3" transform="translate(32 16)" fill="black"/>
+<rect width="1" height="3" transform="translate(22 16)" fill="white"/>
+<rect width="1" height="3" transform="translate(26 16)" fill="white"/>
+<rect width="3" height="5" transform="translate(23 15)" fill="white"/>
+<rect width="3" height="3" transform="translate(23 16)" fill="black"/>
+<path d="M4 20V18H5V20H4Z" stroke="black"/>
+<path d="M22.1804 23.4576L32.6003 26.9824L30.9981 31.7188L18.21 27.3928L18.5304 26.4456L15.215 25.324L15.5354 24.3767L14.5882 24.0563L14.9086 23.109L13.9613 22.7886L15.2431 18.9995L19.0322 20.2813L18.7117 21.2285L22.5008 22.5103L22.1804 23.4576Z" fill="black"/>
+</svg>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+.dim { position: absolute; background: rgba(0, 0, 0, 0.42); }
+.top  { left: 0; top: 0; width: 100%; height: 0; }
+.bottom { left: 0; width: 100%; top: 0; bottom: 0; }
+.left  { top: 0; left: 0; width: 0; height: 0; }
+.right { top: 0; left: 0; right: 0; height: 0; }
+.frame { position: absolute; left: 0; top: 0; width: 0; height: 0;
+         outline: 2px solid rgba(255,255,255,0.95); outline-offset: 0;
+         box-sizing: border-box; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="dim top"    id="dim-top"></div>
+<div class="dim bottom" id="dim-bottom"></div>
+<div class="dim left"   id="dim-left"></div>
+<div class="dim right"  id="dim-right"></div>
+<div class="frame"      id="frame"></div>
+<script>
+"use strict";
+const top    = document.getElementById("dim-top");
+const bottom = document.getElementById("dim-bottom");
+const left   = document.getElementById("dim-left");
+const right  = document.getElementById("dim-right");
+const frame  = document.getElementById("frame");
+
+function updateCrop(crop) {
+  top.style.height    = Math.max(0, crop.y) + "px";
+  bottom.style.top    = Math.max(0, crop.y + crop.height) + "px";
+  left.style.top      = Math.max(0, crop.y) + "px";
+  left.style.width    = Math.max(0, crop.x) + "px";
+  left.style.height   = Math.max(0, crop.height) + "px";
+  right.style.left    = Math.max(0, crop.x + crop.width) + "px";
+  right.style.top     = Math.max(0, crop.y) + "px";
+  right.style.height  = Math.max(0, crop.height) + "px";
+  frame.style.left    = Math.max(0, crop.x) + "px";
+  frame.style.top     = Math.max(0, crop.y) + "px";
+  frame.style.width   = Math.max(0, crop.width) + "px";
+  frame.style.height  = Math.max(0, crop.height) + "px";
+}
+
+window.overlayAPI.onInit(updateCrop);
+window.overlayAPI.onCropUpdate(updateCrop);
+</script>
+</body>
+</html>
