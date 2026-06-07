@@ -121,6 +121,18 @@
     <button type="submit" id="share-duration-start">REC</button>
     <button type="button" id="share-duration-cancel">×</button>
   </form>
+  <object id="cat2" type="image/svg+xml" data="../svg/cat-idle-follow-v2.svg" aria-label="second cat" aria-hidden="true"></object>
+  <div id="comfort-toast" aria-hidden="true"></div>
+  <div id="cat-notepad" style="display:none;">
+    <div id="cat-notepad-head">
+      <span class="np-ear np-ear-l"></span>
+      <span class="np-ear np-ear-r"></span>
+      <span id="cat-notepad-title">🐾 Katto's notepad</span>
+      <button id="cat-notepad-close" title="close">×</button>
+    </div>
+    <textarea id="cat-notepad-text" placeholder="jot a thought, a task, a doodle in words…  ฅ^•ﻌ•^ฅ"></textarea>
+    <div id="cat-notepad-foot"><span id="cat-notepad-status">purr-fectly saved</span> <span class="np-paw">🐾</span></div>
+  </div>
   <object id="cat" type="image/svg+xml" data="../svg/cat-idle-follow-v2.svg" aria-label="cat"></object>
   <div id="purr-hearts" aria-hidden="true">
     <span></span>
@@ -146,5 +158,6 @@
   <script src="cell-mappings.js"></script>
   <script src="renderer.js"></script>
   <script src="music-mode.js"></script>
+  <script src="comfort.js"></script>
 </body>
 </html>

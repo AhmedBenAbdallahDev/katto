@@ -124,6 +124,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
   onMusicStopListen: (callback) =>
     ipcRenderer.on("music-stop-listen", () => callback()),
 
+  // ── Comfort & Focus ──
+  comfortGetState: () => ipcRenderer.invoke("comfort-get-state"),
+  comfortSet: (key, value) => ipcRenderer.invoke("comfort-set", key, value),
+  onComfortState: (callback) =>
+    ipcRenderer.on("comfort-state", (_evt, state) => callback(state)),
+  notesGet: () => ipcRenderer.invoke("notes-get"),
+  notesSet: (text) => ipcRenderer.invoke("notes-set", text),
+  patternPresetRead: (file) => ipcRenderer.invoke("pattern-preset-read", file),
+
   languageGet: () => ipcRenderer.invoke("language-get"),
   languageSet: (language) => ipcRenderer.invoke("language-set", language),
   onLanguageChanged: (callback) =>

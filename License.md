@@ -1,13 +1,13 @@
 Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
 
-Copyright (c) 2026 jan (nerfspeed on Discord)
+Copyright (c) 2026 Amazing Man
 
 You are free to:
 - Share — copy and redistribute the material in any medium or format
 - Adapt — remix, transform, and build upon the material
 
 Under the following terms:
-- Attribution — You must give appropriate credit to the original author: jan (nerfspeed on Discord).
+- Attribution — You must give appropriate credit to the author: Amazing Man.
   Credit must be clearly visible in any project, release, or distribution that uses this software.
 - NonCommercial — You may not use the material for commercial purposes. Selling, monetizing,
   or otherwise profiting from this software or any derivative of it is strictly prohibited.

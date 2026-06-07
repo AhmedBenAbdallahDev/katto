@@ -888,6 +888,54 @@ requestAnimationFrame(() => {
   if (obj && obj.contentDocument) initTracking();
 });
 
+// Second cat (decorative companion): a brown mackerel tabby, independent of
+// cat #1. It is NOT added to the shared colour pipeline, so cat #1 stays black
+// and typing-heat never recolours the tabby. It just sits beside the main cat.
+const cat2El = document.getElementById("cat2");
+let cat2Applied = false;
+async function registerSecondCat() {
+  const doc = cat2El && cat2El.contentDocument;
+  if (!doc || !doc.documentElement || cat2Applied) return;
+  try {
+    // Make sure the ear/tail patch slots exist before painting the pattern.
+    installTailComponent(doc);
+    installEarComponents(doc);
+
+    let preset = null;
+    try {
+      if (window.electronAPI.patternPresetRead) {
+        preset = await window.electronAPI.patternPresetRead("mackerel-tabby.json");
+      }
+    } catch (e) {}
+
+    if (preset) {
+      const base = typeof preset.baseColor === "string" ? preset.baseColor : "#caa46f";
+      doc.documentElement.style.setProperty("--cat-color", base);
+      const rgb = hexToRgb(base);
+      if (rgb) {
+        const lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+        doc.documentElement.style.setProperty("--cat-outline", lum > 0.5 ? "#000000" : "#FFFFFF");
+      }
+      if (typeof preset.eyeColor === "string") {
+        doc.documentElement.style.setProperty("--eye-color", preset.eyeColor);
+      }
+      if (typeof preset.eyeBgColor === "string") {
+        doc.documentElement.style.setProperty("--eye-bg-color", preset.eyeBgColor);
+      }
+      applyPatternToSvg(doc, preset);
+      cat2Applied = true;
+    } else {
+      // Fallback if the preset can't be read: at least a warm tabby-brown coat.
+      doc.documentElement.style.setProperty("--cat-color", "#caa46f");
+      doc.documentElement.style.setProperty("--cat-outline", "#3a2a16");
+    }
+  } catch (e) {}
+}
+if (cat2El) {
+  cat2El.addEventListener("load", () => { cat2Applied = false; registerSecondCat(); });
+  requestAnimationFrame(() => { if (cat2El.contentDocument) registerSecondCat(); });
+}
+
 function initTracking() {
   svgDoc = obj.contentDocument;
   if (!svgDoc) return;
@@ -1753,6 +1801,7 @@ function playCompletionMeow() {
   const now = Date.now();
   if (now - lastMeowAt < MEOW_COOLDOWN_MS) return;
   lastMeowAt = now;
+  if (window.__kattoCalm) return;
   completionMeow.volume = completionMeowVolume;
   completionMeow.currentTime = 0;
   completionMeow.play().catch(() => {});
@@ -1766,6 +1815,7 @@ function playReminderMeow(options = {}) {
   if (completionMeowVolume <= 0) return;
   const repeat = Math.max(1, Math.min(3, Math.round(Number(options.repeat) || 3)));
   const play = () => {
+    if (window.__kattoCalm) return;
     reminderMeow.volume = getReminderMeowVolume();
     reminderMeow.currentTime = 0;
     reminderMeow.play().catch(() => {});
@@ -2174,6 +2224,7 @@ function startPurring(clientX, clientY) {
   setIdleSvgClass("purring", true);
   document.body.dataset.purring = "1";
   purrWanted = true;
+  if (window.__kattoCalm) return;
   if (purringSound.paused && !purrPlayPromise) {
     purringSound.currentTime = 0;
     purrPlayPromise = purringSound.play()
@@ -2284,6 +2335,10 @@ function shouldReceiveMouseAt(x, y) {
     return true;
   }
   if (catSpeechBubble && getComputedStyle(catSpeechBubble).display !== "none" && rectContains(catSpeechBubble.getBoundingClientRect(), x, y)) {
+    return true;
+  }
+  const notepadEl = document.getElementById("cat-notepad");
+  if (notepadEl && getComputedStyle(notepadEl).display !== "none" && rectContains(notepadEl.getBoundingClientRect(), x, y)) {
     return true;
   }
   return isCatHitPoint(x, y);

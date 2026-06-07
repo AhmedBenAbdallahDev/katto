@@ -109,6 +109,17 @@ const PROTOTYPE_LICENSE_ENDPOINT = require("./prototype-license/endpoint");
 const NOW_PLAYING = require("./music/now-playing");
 let musicModeEnabled = false;
 let lastMusicSnapshot = { playing: false, title: "", artist: "", source: "" };
+const comfortState = {
+  typewriter: false,
+  typeStyle: "mechanical",   // mechanical | typewriter | soft | clicky
+  calm: false,
+  checkins: false,
+  secondCat: false,
+  noiseType: "off",          // off | white | pink | brown
+  noiseTimerMin: 0,          // 0 = no auto-stop
+  notesOpen: false,
+};
+const SPOTIFY_WHITE_NOISE_URL = "https://open.spotify.com/track/04boE4u1AupbrGlI62WvoO";
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja"];
 const SHARE_VIDEO_CROP_GUARD_X_PX = 48;
 const SHARE_VIDEO_CROP_GUARD_TOP_PX = 96;
@@ -150,6 +161,28 @@ const I18N = {
     musicModeEnable: "Enable Music Mode",
     musicTuneIn: "Tune in to my audio",
     musicStopListen: "Stop listening",
+    comfortMenu: "Comfort & Focus",
+    comfortTypewriter: "Typewriter typing sounds",
+    comfortSecondCat: "Show a second cat (experimental)",
+    comfortCalm: "Calm mode (less motion & sound)",
+    comfortCheckins: "Gentle focus check-ins",
+    comfortTypeStyle: "Typing sound style",
+    typeStyle_mechanical: "Mechanical",
+    typeStyle_typewriter: "Classic typewriter",
+    typeStyle_soft: "Soft / membrane",
+    typeStyle_clicky: "Clicky",
+    comfortWhiteNoise: "White noise",
+    noise_off: "Off",
+    noise_white: "White noise",
+    noise_pink: "Pink noise",
+    noise_brown: "Brown noise (deep)",
+    noiseTimerOff: "No timer",
+    noiseTimerMin: "Stop after {n} min",
+    noiseSpotify: "Play white-noise track on Spotify",
+    catNotepad: "Cat notepad",
+    reminderTemplates: "Reminder templates",
+    templateWater: "Add gentle water reminders 💧",
+    templateFeed: "Add cat feeding reminders 🐱",
     madeByCredit: "Made by Amazing Man",
     aboutKatto: "About Katto",
     shareCat: "Show off my Katto",
@@ -232,6 +265,28 @@ const I18N = {
     musicModeEnable: "뮤직 모드 켜기",
     musicTuneIn: "내 소리 듣기",
     musicStopListen: "듣기 멈추기",
+    comfortMenu: "편안함 & 집중",
+    comfortTypewriter: "타자기 타이핑 소리",
+    comfortSecondCat: "두 번째 고양이 보기 (실험적)",
+    comfortCalm: "차분 모드 (움직임 & 소리 줄이기)",
+    comfortCheckins: "부드러운 집중 체크인",
+    comfortTypeStyle: "타이핑 소리 스타일",
+    typeStyle_mechanical: "기계식",
+    typeStyle_typewriter: "클래식 타자기",
+    typeStyle_soft: "부드러운/멤브레인",
+    typeStyle_clicky: "클릭키",
+    comfortWhiteNoise: "백색소음",
+    noise_off: "끄기",
+    noise_white: "백색소음",
+    noise_pink: "핑크 노이즈",
+    noise_brown: "브라운 노이즈 (깊은)",
+    noiseTimerOff: "타이머 없음",
+    noiseTimerMin: "{n}분 후 정지",
+    noiseSpotify: "Spotify에서 백색소음 트랙 재생",
+    catNotepad: "고양이 메모장",
+    reminderTemplates: "알림 템플릿",
+    templateWater: "부드러운 수분 알림 추가 💧",
+    templateFeed: "고양이 밥 알림 추가 🐱",
     madeByCredit: "Made by Amazing Man",
     aboutKatto: "Katto 정보",
     shareCat: "내 카토 자랑 영상찍기",
@@ -314,6 +369,28 @@ const I18N = {
     musicModeEnable: "ミュージックモードを有効化",
     musicTuneIn: "音を聴く",
     musicStopListen: "聴くのをやめる",
+    comfortMenu: "快適 & 集中",
+    comfortTypewriter: "タイプライター音",
+    comfortSecondCat: "2匹目の猫を表示（実験的）",
+    comfortCalm: "カームモード（動きと音を控えめに）",
+    comfortCheckins: "やさしい集中チェックイン",
+    comfortTypeStyle: "タイピング音スタイル",
+    typeStyle_mechanical: "メカニカル",
+    typeStyle_typewriter: "クラシックタイプライター",
+    typeStyle_soft: "ソフト/メンブレン",
+    typeStyle_clicky: "クリッキー",
+    comfortWhiteNoise: "ホワイトノイズ",
+    noise_off: "オフ",
+    noise_white: "ホワイトノイズ",
+    noise_pink: "ピンクノイズ",
+    noise_brown: "ブラウンノイズ（深い）",
+    noiseTimerOff: "タイマーなし",
+    noiseTimerMin: "{n}分後に停止",
+    noiseSpotify: "Spotifyでホワイトノイズを再生",
+    catNotepad: "猫のメモ帳",
+    reminderTemplates: "リマインダーテンプレート",
+    templateWater: "やさしい水分補給リマインダーを追加 💧",
+    templateFeed: "猫の食事リマインダーを追加 🐱",
     madeByCredit: "Made by Amazing Man",
     aboutKatto: "Katto について",
     shareCat: "Katto を自慢する動画を撮る",
@@ -1244,6 +1321,7 @@ function createPetWindow() {
     broadcastReminders();
     broadcastReminderSettings();
     broadcastMusicState();
+    broadcastComfort();
     if (!catNamePromptShown) {
       setTimeout(() => {
         if (!petWin || petWin.isDestroyed() || catNamePromptShown) return;
@@ -1472,6 +1550,11 @@ function loadCellMappings() {
 
 // 패턴 — 에디터/펫 윈도우 양방향
 ipcMain.handle("pattern-get", () => currentPattern);
+ipcMain.handle("pattern-preset-read", (_evt, fileName) => {
+  try {
+    return JSON.parse(fs.readFileSync(patternPresetPath(String(fileName || "")), "utf8"));
+  } catch { return null; }
+});
 ipcMain.handle("pattern-presets-get", () => {
   const builtinPresets = PATTERN_PRESETS.map((preset) => {
     try {
@@ -2240,6 +2323,62 @@ ipcMain.handle("music-capture-source", async () => {
   }
 });
 
+// ── Comfort & Focus IPC ──
+function broadcastComfort() {
+  if (petWin && !petWin.isDestroyed()) petWin.webContents.send("comfort-state", { ...comfortState });
+}
+ipcMain.handle("comfort-get-state", () => ({ ...comfortState }));
+ipcMain.handle("comfort-set", (_evt, key, value) => {
+  if (Object.prototype.hasOwnProperty.call(comfortState, key)) {
+    const cur = comfortState[key];
+    comfortState[key] = typeof cur === "boolean" ? !!value
+      : typeof cur === "number" ? (Number(value) || 0)
+      : String(value);
+    buildAppMenu();
+    broadcastComfort();
+  }
+  return { ...comfortState };
+});
+
+// Open the chosen white-noise track in Spotify.
+ipcMain.handle("comfort-spotify-noise", () => {
+  shell.openExternal(SPOTIFY_WHITE_NOISE_URL).catch(() => {});
+  return { ok: true };
+});
+
+// ── Cat notepad persistence (userData/katto-notes.json) ──
+function notesFilePath() {
+  return path.join(app.getPath("userData"), "katto-notes.json");
+}
+ipcMain.handle("notes-get", () => {
+  try {
+    const data = JSON.parse(fs.readFileSync(notesFilePath(), "utf-8"));
+    return typeof data.text === "string" ? data.text : "";
+  } catch { return ""; }
+});
+ipcMain.handle("notes-set", (_evt, text) => {
+  try {
+    fs.writeFileSync(notesFilePath(), JSON.stringify({ text: String(text || ""), updatedAt: Date.now() }));
+    return { ok: true };
+  } catch { return { ok: false }; }
+});
+
+// ── Reminder quick-templates ──
+function addReminderTemplate(kind) {
+  let made = 0;
+  const add = (time, message) => { const r = addReminder({ time, message, repeat: "daily" }); if (r && r.ok) made++; };
+  if (kind === "water") {
+    add("11:00", "A gentle sip of water? 🐾💧");
+    add("15:00", "Hydration break — water time 💧");
+    add("19:00", "One more glass of water before evening 🐾");
+  } else if (kind === "feed") {
+    add("08:00", "Breakfast time for the cats 🐱🍽️");
+    add("18:00", "Dinner time for the cats 🐱🍽️");
+  }
+  return made;
+}
+ipcMain.handle("reminder-add-template", (_evt, kind) => ({ ok: true, made: addReminderTemplate(kind) }));
+
 // 우클릭 컨텍스트 메뉴
 ipcMain.on("show-context-menu", () => {
   if (!petWin || petWin.isDestroyed()) return;
@@ -2365,6 +2504,90 @@ ipcMain.on("show-context-menu", () => {
     },
     { type: "separator" },
     {
+      label: t("comfortMenu"),
+      submenu: [
+        {
+          label: t("comfortTypewriter"),
+          type: "checkbox",
+          checked: comfortState.typewriter,
+          click: (item) => { comfortState.typewriter = item.checked; buildAppMenu(); broadcastComfort(); },
+        },
+        {
+          label: t("comfortTypeStyle"),
+          submenu: ["mechanical", "typewriter", "soft", "clicky"].map((style) => ({
+            label: t("typeStyle_" + style),
+            type: "radio",
+            checked: comfortState.typeStyle === style,
+            click: () => { comfortState.typeStyle = style; buildAppMenu(); broadcastComfort(); },
+          })),
+        },
+        { type: "separator" },
+        {
+          label: t("comfortWhiteNoise"),
+          submenu: [
+            ...["off", "white", "pink", "brown"].map((nt) => ({
+              label: t("noise_" + nt),
+              type: "radio",
+              checked: comfortState.noiseType === nt,
+              click: () => { comfortState.noiseType = nt; buildAppMenu(); broadcastComfort(); },
+            })),
+            { type: "separator" },
+            ...[0, 15, 30, 60].map((min) => ({
+              label: min === 0 ? t("noiseTimerOff") : t("noiseTimerMin").replace("{n}", String(min)),
+              type: "radio",
+              checked: comfortState.noiseTimerMin === min,
+              click: () => { comfortState.noiseTimerMin = min; buildAppMenu(); broadcastComfort(); },
+            })),
+            { type: "separator" },
+            {
+              label: t("noiseSpotify"),
+              click: () => shell.openExternal(SPOTIFY_WHITE_NOISE_URL).catch(() => {}),
+            },
+          ],
+        },
+        { type: "separator" },
+        {
+          label: t("catNotepad"),
+          type: "checkbox",
+          checked: comfortState.notesOpen,
+          click: (item) => { comfortState.notesOpen = item.checked; buildAppMenu(); broadcastComfort(); },
+        },
+        {
+          label: t("comfortSecondCat"),
+          type: "checkbox",
+          checked: comfortState.secondCat,
+          click: (item) => { comfortState.secondCat = item.checked; buildAppMenu(); broadcastComfort(); },
+        },
+        { type: "separator" },
+        {
+          label: t("comfortCalm"),
+          type: "checkbox",
+          checked: comfortState.calm,
+          click: (item) => { comfortState.calm = item.checked; buildAppMenu(); broadcastComfort(); },
+        },
+        {
+          label: t("comfortCheckins"),
+          type: "checkbox",
+          checked: comfortState.checkins,
+          click: (item) => { comfortState.checkins = item.checked; buildAppMenu(); broadcastComfort(); },
+        },
+      ],
+    },
+    {
+      label: t("reminderTemplates"),
+      submenu: [
+        {
+          label: t("templateWater"),
+          click: () => addReminderTemplate("water"),
+        },
+        {
+          label: t("templateFeed"),
+          click: () => addReminderTemplate("feed"),
+        },
+      ],
+    },
+    { type: "separator" },
+    {
       label: t("shareCat"),
       click: () => petWin.webContents.send("share-record"),
     },
@@ -2449,7 +2672,7 @@ ipcMain.on("show-context-menu", () => {
             type: "info",
             title: "Katto",
             message: `Katto v${app.getVersion()}`,
-            detail: "Desktop companion cat — made by Amazing Man.\n\nBased on the original Catjang by jan (nerfspeed), used under CC BY-NC 4.0.",
+            detail: "Katto — a desktop companion cat.\n\nMade by Amazing Man. Licensed under CC BY-NC 4.0.",
             buttons: ["OK"],
             noLink: true,
           });

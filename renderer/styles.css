@@ -1143,3 +1143,154 @@ body[data-music-dancing] #cat {
   75%  { transform: translateX(-50%) translateY(calc(var(--cat-size) * -0.03 * (0.4 + var(--bob-strength)))) rotate(-2deg); }
   100% { transform: translateX(-50%) translateY(0) rotate(-2deg); }
 }
+
+/* ============================================================
+   Comfort & Focus + second cat (Amazing Man build)
+   ============================================================ */
+
+/* Second cat — a decorative companion beside the main cat */
+#cat2 {
+  position: absolute;
+  top: calc(var(--cat-top) + var(--cat-size) * 0.16);
+  left: 50%;
+  transform: translateX(-128%) scaleX(-1);
+  width: calc(var(--cat-size) * 0.82);
+  aspect-ratio: 1;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  opacity: 0;
+  z-index: 0;                 /* ties with #cat (auto); #cat is later in DOM so paints on top */
+  transition: opacity 300ms ease;
+}
+body[data-two-cats] #cat2 { opacity: 1; }
+@keyframes cat2Bob {
+  0%,100% { transform: translateX(-128%) scaleX(-1) translateY(0) rotate(2deg); }
+  50%     { transform: translateX(-128%) scaleX(-1) translateY(calc(var(--cat-size) * -0.03)) rotate(-2deg); }
+}
+body[data-music-dancing][data-two-cats] #cat2 {
+  animation: cat2Bob 0.46s ease-in-out infinite;
+  animation-delay: 0.23s;
+}
+
+/* Gentle focus check-in toast */
+#comfort-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  transform: translateX(-50%) translateY(8px);
+  max-width: 90vw;
+  padding: 7px 13px;
+  border-radius: 12px;
+  background: rgba(24, 22, 38, 0.94);
+  color: #fff;
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 5px 16px rgba(0,0,0,0.4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 320ms ease, transform 320ms ease;
+  z-index: 7;
+}
+#comfort-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Calm mode: reduce motion and visual intensity ── */
+body[data-calm] #cat,
+body[data-calm] #cat2 {
+  animation: none !important;
+}
+body[data-calm] #music-equalizer .eq-bar {
+  animation: none !important;
+  transition: none !important;
+  transform: scaleY(0.3) !important;
+}
+body[data-calm] #music-note-burst { display: none !important; }
+body[data-calm] [data-press] { transition: none !important; }
+/* honor the OS "reduce motion" setting as well */
+@media (prefers-reduced-motion: reduce) {
+  #cat2, #music-note-burst span { animation: none !important; }
+}
+
+/* ── Cat notepad (whimsical) ── */
+#cat-notepad {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  transform: translateX(-50%);
+  width: min(78vw, 360px);
+  height: min(58vh, 320px);
+  display: none;
+  flex-direction: column;
+  background: linear-gradient(180deg, #2b2740 0%, #211d33 100%);
+  border: 2px solid #4a4470;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+  overflow: visible;
+  pointer-events: auto;
+  z-index: 9;
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+#cat-notepad-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  background: #3a345a;
+  border-radius: 14px 14px 0 0;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+}
+/* little cat ears poking above the header */
+.np-ear {
+  position: absolute;
+  top: -11px;
+  width: 0; height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 16px solid #3a345a;
+}
+.np-ear-l { left: 18px; transform: rotate(-12deg); }
+.np-ear-r { left: 46px; transform: rotate(12deg); }
+#cat-notepad-title { margin-left: 40px; flex: 1; }
+#cat-notepad-close {
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+#cat-notepad-close:hover { background: rgba(255,255,255,0.25); }
+#cat-notepad-text {
+  flex: 1;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: 12px 14px;
+  background: transparent;
+  color: #f3f0ff;
+  font-size: 13px;
+  line-height: 1.5;
+  font-family: "SF Mono", "Consolas", ui-monospace, monospace;
+}
+#cat-notepad-text::placeholder { color: #8a83b8; }
+#cat-notepad-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  font-size: 10px;
+  color: #9b94c8;
+  border-top: 1px solid #3a345a;
+}
+.np-paw { font-size: 12px; }
+body[data-calm] #cat-notepad { box-shadow: 0 6px 16px rgba(0,0,0,0.35); }

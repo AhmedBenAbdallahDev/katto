@@ -36,6 +36,7 @@
     source: "",
     listening: false,       // live audio capture active
     audioLevel: 0,          // smoothed overall level 0..1
+    gain: 1.0,              // input gain (mic input is boosted)
   };
 
   // ── Web Audio plumbing ──
@@ -89,7 +90,7 @@
       const start = b * per;
       const end = Math.min(usable, start + per);
       for (let i = start; i < end; i++) sum += freqData[i];
-      const avg = sum / Math.max(1, end - start) / 255; // 0..1
+      const avg = sum / Math.max(1, end - start) / 255 * state.gain; // 0..1, gain-adjusted
       total += avg;
       // Boost a touch + clamp, then ease toward target for smooth motion.
       const target = Math.min(1, Math.max(0.06, avg * 1.35 + 0.05));
@@ -106,30 +107,55 @@
     rafId = requestAnimationFrame(computeBands);
   }
 
+  async function getDesktopAudioStream() {
+    // Windows: capture system/loopback audio. Chromium needs a tiny video
+    // desktop track requested alongside it; we keep only the audio.
+    if (!api.musicCaptureSource) throw new Error("no capture api");
+    const src = await api.musicCaptureSource();
+    const sourceId = src && src.sourceId;
+    if (!sourceId) throw new Error("no capture source");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { mandatory: { chromeMediaSource: "desktop" } },
+      video: {
+        mandatory: {
+          chromeMediaSource: "desktop",
+          chromeMediaSourceId: sourceId,
+          maxWidth: 2,
+          maxHeight: 2,
+          maxFrameRate: 1,
+        },
+      },
+    });
+    for (const track of stream.getVideoTracks()) track.stop();
+    if (stream.getAudioTracks().length === 0) throw new Error("no system audio");
+    return { stream, viaMic: false };
+  }
+
+  async function getMicStream() {
+    // Cross-platform fallback (and the default on macOS, where system-audio
+    // loopback isn't available): listen through the microphone, so the cat
+    // reacts to music playing on the speakers.
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+    });
+    return { stream, viaMic: true };
+  }
+
   async function startListening() {
     if (state.listening) return;
-    if (!api.musicCaptureSource) return;
+    let result = null;
+    const isMac = navigator.platform.toLowerCase().includes("mac");
     try {
-      const src = await api.musicCaptureSource();
-      const sourceId = src && src.sourceId;
-      if (!sourceId) throw new Error("No capture source");
+      // macOS can't do loopback — go straight to the mic. Elsewhere, try
+      // system audio first, then fall back to the mic if it's blocked/empty.
+      result = isMac ? await getMicStream() : await getDesktopAudioStream();
+    } catch (err) {
+      try { result = await getMicStream(); } catch (err2) { result = null; }
+    }
+    if (!result) { stopListening(); return; }
 
-      // Chromium requires a video desktop track to be requested alongside the
-      // desktop audio track; we keep only the audio.
-      mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: { mandatory: { chromeMediaSource: "desktop" } },
-        video: {
-          mandatory: {
-            chromeMediaSource: "desktop",
-            chromeMediaSourceId: sourceId,
-            maxWidth: 2,
-            maxHeight: 2,
-            maxFrameRate: 1,
-          },
-        },
-      });
-      for (const track of mediaStream.getVideoTracks()) track.stop();
-
+    try {
+      mediaStream = result.stream;
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const source = audioCtx.createMediaStreamSource(mediaStream);
       analyser = audioCtx.createAnalyser();
@@ -139,11 +165,12 @@
       source.connect(analyser); // analyser is a sink only — audio is NOT routed to output.
 
       state.listening = true;
+      // Mic input is quieter, so give the level a boost.
+      state.gain = result.viaMic ? 2.2 : 1.0;
       refreshFlags();
       if (rafId) cancelAnimationFrame(rafId);
       computeBands();
     } catch (err) {
-      // Capture denied / unsupported — fall back to procedural bars.
       stopListening();
     }
   }
